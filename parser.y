@@ -70,6 +70,9 @@ import (
 	odbcTimeType      "t"
 	odbcTimestampType "ts"
 
+	/* The following tokens belong to SQLX */
+	CONST							"CONST"
+
 	/* The following tokens belong to ReservedKeyword. Notice: make sure these tokens are contained in ReservedKeyword. */
 	add               "ADD"
 	all               "ALL"
@@ -925,6 +928,8 @@ import (
 	BindableStmt               "Statement that can be created binding on"
 	UpdateStmtNoWith           "Update statement without CTE clause"
 	HelpStmt                   "HELP statement"
+	ImportStmt								 "SQLX IMPORT statement"
+	ConstStmt									 "SQLX CONSTANT declaration statement"
 
 %type	<item>
 	AdminShowSlow                          "Admin Show Slow statement"
@@ -10982,6 +10987,8 @@ Statement:
 |	ShutdownStmt
 |	RestartStmt
 |	HelpStmt
+| ImportStmt
+| ConstStmt
 
 TraceableStmt:
 	DeleteFromStmt
@@ -13721,4 +13728,26 @@ PlanRecreatorStmt:
 
 		$$ = x
 	}
+
+// SQLX
+
+ImportStmt:
+	"IMPORT" TableNameList "FROM" stringLit
+	{
+		$$ = &ast.ImportStmt{
+			Refs: $2.([]*ast.TableName),
+			Src: $4,
+		}
+	}
+
+ConstStmt:
+	"CONST" Identifier eq Literal
+	{
+		$$ = &ast.ConstStmt{
+			Name: $2,
+			Value: $4,
+		}
+	}
+
+// End SQLX
 %%
