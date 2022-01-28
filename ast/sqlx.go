@@ -43,7 +43,7 @@ func (n *ImportStmt) Accept(v Visitor) (Node, bool) {
 type ConstStmt struct {
 	stmtNode
 	Name  string
-	Value ValueExpr
+	Value ExprNode
 }
 
 // Restore implements Node interface
@@ -67,7 +67,7 @@ func (n *ConstStmt) Accept(v Visitor) (Node, bool) {
 		return n, false
 	}
 
-	n.Value = valueNode.(ValueExpr)
+	n.Value = valueNode.(ExprNode)
 
 	return v.Leave(n)
 }
