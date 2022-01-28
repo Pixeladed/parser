@@ -4,6 +4,7 @@ import "github.com/pingcap/parser/format"
 
 var (
 	_ StmtNode = &ImportStmt{}
+	_ StmtNode = &ConstStmt{}
 )
 
 // ImportStmt is a statement for importing queries from other files
@@ -35,5 +36,38 @@ func (n *ImportStmt) Accept(v Visitor) (Node, bool) {
 		return v.Leave(newNode)
 	}
 	n = newNode.(*ImportStmt)
+	return v.Leave(n)
+}
+
+// ConstStmt is a statement for importing queries from other files
+type ConstStmt struct {
+	stmtNode
+	Name  string
+	Value ValueExpr
+}
+
+// Restore implements Node interface
+func (n *ConstStmt) Restore(ctx *format.RestoreCtx) error {
+	ctx.WriteKeyWord("CONST ")
+	ctx.WriteName(n.Name)
+	ctx.WritePlainf(" = ")
+	return n.Value.Restore(ctx)
+}
+
+// Accept implements Node Accept interface
+func (n *ConstStmt) Accept(v Visitor) (Node, bool) {
+	newNode, skipChildren := v.Enter(n)
+	if skipChildren {
+		return v.Leave(newNode)
+	}
+	n = newNode.(*ConstStmt)
+
+	valueNode, ok := n.Value.Accept(v)
+	if !ok {
+		return n, false
+	}
+
+	n.Value = valueNode.(ValueExpr)
+
 	return v.Leave(n)
 }
